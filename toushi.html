@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WealthAdvise - 無料投資診断・資産運用シミュレーション</title>
+  
+  <!-- Tailwind CSS & Chart.js CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Google Fonts & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: { 800: '#1b2a4a', 900: '#0f172a' },
+            gold: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' }
+          },
+          fontFamily: {
+            sans: ['"Noto Sans JP"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans leading-relaxed flex flex-col min-h-screen">
+
+  <!-- ヘッダー -->
+  <header class="bg-navy-900 text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
+        <a href="#" class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full bg-gold-500 flex items-center justify-center text-navy-900 font-bold text-xl">W</div>
+          <span class="font-serif text-2xl font-bold tracking-wider">WealthAdvise</span>
+        </a>
+        <nav class="hidden md:flex space-x-8 text-sm font-medium">
+          <a href="#diagnosis" class="hover:text-gold-400 transition-colors">資産診断</a>
+          <a href="#simulator" class="hover:text-gold-400 transition-colors">運用シミュレーション</a>
+          <a href="#advisors" class="hover:text-gold-400 transition-colors">アドバイザー紹介</a>
+        </nav>
+        <button onclick="openBookingModal()" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold px-5 py-2.5 rounded-lg shadow-lg transition duration-200 text-sm">
+          無料個別相談を予約
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- メインビジュアル -->
+  <section class="bg-gradient-to-r from-navy-900 via-navy-800 to-slate-900 text-white py-20 px-4">
+    <div class="max-w-4xl mx-auto text-center">
+      <span class="text-gold-400 font-semibold tracking-wider text-sm uppercase">Smart Financial Planning</span>
+      <h1 class="text-3xl md:text-5xl font-bold mt-4 mb-6 leading-tight">未来を見据えた資産運用を、<br>あなたに最適なカタチで。</h1>
+      <p class="text-slate-300 text-base md:text-lg mb-8 max-w-2xl mx-auto">
+        最新のシミュレーション技術と専門家のアドバイスで、確実な資産形成をお手伝いします。
+      </p>
+      <div class="flex flex-col sm:flex-row justify-center gap-4">
+        <a href="#diagnosis" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold px-8 py-4 rounded-xl transition shadow-lg text-center">
+          1分でできるAI無料診断
+        </a>
+        <a href="#simulator" class="bg-slate-800 hover:bg-slate-700 text-white font-medium px-8 py-4 rounded-xl border border-slate-700 transition text-center">
+          シミュレーターを試す
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1分資産診断クイズ -->
+  <section id="diagnosis" class="py-16 px-4 bg-white border-b">
+    <div class="max-w-3xl mx-auto bg-slate-50 p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200">
+      <div class="text-center mb-8">
+        <h2 class="text-2xl md:text-3xl font-bold text-navy-900">1分でわかるポートフォリオ診断</h2>
+        <p class="text-slate-600 text-sm mt-2">いくつかの質問に答えるだけで、最適なリスク＆リターンバランスを診断します。</p>
+      </div>
+
+      <form id="quiz-form" onsubmit="event.preventDefault(); calculateQuizResult();" class="space-y-6">
+        <div>
+          <label class="block font-medium mb-2 text-slate-700">1. ご年齢を選択してください</label>
+          <select id="q-age" class="w-full p-3 rounded-lg border border-slate-300 bg-white">
+            <option value="1">20代〜30代（長期的な運用が可能）</option>
+            <option value="2">40代〜50代（バランスを重視したい）</option>
+            <option value="3">60代以上（資産の保全を重視したい）</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-medium mb-2 text-slate-700">2. 運用目的は何ですか？</label>
+          <select id="q-purpose" class="w-full p-3 rounded-lg border border-slate-300 bg-white">
+            <option value="growth">老後資金の大幅なプラスを狙いたい</option>
+            <option value="balanced">インフレ対策をしつつ着実に増やしたい</option>
+            <option value="stable">元本割れのリスクをできる限り抑えたい</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-medium mb-2 text-slate-700">3. 一時的に評価額が20%下落した場合どうしますか？</label>
+          <select id="q-risk" class="w-full p-3 rounded-lg border border-slate-300 bg-white">
+            <option value="buy">安くなったと捉えて買い増しする</option>
+            <option value="wait">特に何もせず回復を待つ</option>
+            <option value="sell">これ以上の損失を防ぐために売却する</option>
+          </select>
+        </div>
+
+        <button type="submit" class="w-full bg-navy-900 hover:bg-navy-800 text-white font-bold py-3.5 rounded-xl transition">
+          診断結果を見る
+        </button>
+      </form>
+
+      <!-- 診断結果表示枠（初期状態非表示） -->
+      <div id="quiz-result" class="hidden mt-8 p-6 bg-white rounded-xl border border-gold-400">
+        <h3 class="text-xl font-bold text-navy-900 mb-2">あなたにおすすめの運用タイプ：<span id="result-type-name" class="text-gold-600"></span></h3>
+        <p id="result-description" class="text-slate-600 text-sm mb-4"></p>
+        <button onclick="applyResultToSimulator()" class="w-full bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-2.5 rounded-lg text-sm">
+          この設定を下のシミュレーターに反映する
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 運用シミュレーション & アセットアロケーション -->
+  <section id="simulator" class="py-16 px-4 max-w-7xl mx-auto w-full">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-navy-900">資産推移 & ポートフォリオ シミュレーション</h2>
+      <p class="text-slate-600 mt-2">運用プランに合わせた将来の資産推移を可視化します。</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- 条件入力フォーム -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+        <h3 class="font-bold text-lg border-b pb-3 text-navy-900">条件設定</h3>
+
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-slate-600">初期投資額</span>
+            <span class="font-bold text-navy-900"><span id="val-initial">100</span> 万円</span>
+          </div>
+          <input type="range" id="input-initial" min="0" max="1000" step="10" value="100" class="w-full accent-gold-500">
+        </div>
+
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-slate-600">毎月の積立額</span>
+            <span class="font-bold text-navy-900"><span id="val-monthly">5</span> 万円</span>
+          </div>
+          <input type="range" id="input-monthly" min="0" max="30" step="1" value="5" class="w-full accent-gold-500">
+        </div>
+
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-slate-600">運用期間</span>
+            <span class="font-bold text-navy-900"><span id="val-years">20</span> 年</span>
+          </div>
+          <input type="range" id="input-years" min="1" max="40" step="1" value="20" class="w-full accent-gold-500">
+        </div>
+
+        <div>
+          <label class="block text-sm text-slate-600 mb-1">リスク・運用タイプ</label>
+          <select id="input-type" class="w-full p-2.5 rounded-lg border border-slate-300 bg-white">
+            <option value="growth">積極成長型 (想定年利 7.0%)</option>
+            <option value="balanced" selected>バランス型 (想定年利 5.0%)</option>
+            <option value="stable">安定運用型 (想定年利 3.0%)</option>
+          </select>
+        </div>
+
+        <div class="p-4 bg-slate-50 rounded-xl border text-sm space-y-2">
+          <div class="flex justify-between">
+            <span class="text-slate-600">想定最終資産（標準）:</span>
+            <span class="font-bold text-gold-600 text-lg"><span id="res-total">0</span> 万円</span>
+          </div>
+          <div class="flex justify-between text-xs text-slate-500">
+            <span>投資元本累計:</span>
+            <span><span id="res-principal">0</span> 万円</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- グラフエリア -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- 資産推移折れ線グラフ -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <h4 class="font-bold text-navy-900 mb-4">将来資産推移（複利計算）</h4>
+          <div class="h-64 sm:h-80">
+            <canvas id="chart-growth"></canvas>
+          </div>
+        </div>
+
+        <!-- 資産配分ドーナツグラフ -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <h4 class="font-bold text-navy-900 mb-4">推奨アセットアロケーション（資産配分）</h4>
+          <div class="h-48">
+            <canvas id="chart-allocation"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- アドバイザー紹介 & 予約導線 -->
+  <section id="advisors" class="bg-slate-100 py-16 px-4">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-navy-900">専任アドバイザー</h2>
+        <p class="text-slate-600 mt-2">お金のプロフェッショナルが個別の疑問に丁寧にお答えします。</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div class="bg-white p-6 rounded-2xl border shadow-sm flex flex-col sm:flex-row items-center gap-6">
+          <div class="w-24 h-24 rounded-full bg-navy-800 text-white flex items-center justify-center font-bold text-2xl flex-shrink-0">佐藤</div>
+          <div>
+            <span class="text-xs bg-gold-400 text-navy-900 font-bold px-2.5 py-1 rounded">CFP認定者</span>
+            <h3 class="font-bold text-lg mt-2">佐藤 健太</h3>
+            <p class="text-xs text-slate-500 mb-2">得意分野: 資産形成・新NISA活用</p>
+            <p class="text-sm text-slate-600">初心者の方でも分かりやすく、長期投資の基礎からアドバイスいたします。</p>
+            <button onclick="openBookingModal('佐藤 健太')" class="mt-4 text-xs bg-navy-900 text-white font-bold px-4 py-2 rounded-lg hover:bg-navy-800">相談を予約する</button>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border shadow-sm flex flex-col sm:flex-row items-center gap-6">
+          <div class="w-24 h-24 rounded-full bg-gold-500 text-navy-900 flex items-center justify-center font-bold text-2xl flex-shrink-0">高橋</div>
+          <div>
+            <span class="text-xs bg-gold-400 text-navy-900 font-bold px-2.5 py-1 rounded">1級FP技能士</span>
+            <h3 class="font-bold text-lg mt-2">高橋 美咲</h3>
+            <p class="text-xs text-slate-500 mb-2">得意分野: 家計見直し・ポートフォリオ組替</p>
+            <p class="text-sm text-slate-600">リスクを考慮した安全性の高い運用計画のご提案が得意です。</p>
+            <button onclick="openBookingModal('高橋 美咲')" class="mt-4 text-xs bg-navy-900 text-white font-bold px-4 py-2 rounded-lg hover:bg-navy-800">相談を予約する</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- フッター -->
+  <footer class="bg-navy-900 text-slate-400 py-8 px-4 mt-auto">
+    <div class="max-w-7xl mx-auto text-center text-sm">
+      <p>© 2026 WealthAdvise Inc. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- 予約モーダル -->
+  <div id="booking-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 relative">
+      <button onclick="closeBookingModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+      <h3 class="text-xl font-bold text-navy-900 mb-4">無料個別相談の予約</h3>
+      
+      <form onsubmit="event.preventDefault(); submitBooking();" class="space-y-4">
+        <div>
+          <label class="block text-xs text-slate-600 mb-1">ご希望のアドバイザー</label>
+          <input type="text" id="modal-advisor" class="w-full p-2.5 rounded-lg border bg-slate-100 text-slate-700" readonly>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-600 mb-1">お名前</label>
+          <input type="text" required placeholder="山田 太郎" class="w-full p-2.5 rounded-lg border">
+        </div>
+        <div>
+          <label class="block text-xs text-slate-600 mb-1">メールアドレス</label>
+          <input type="email" required placeholder="example@mail.com" class="w-full p-2.5 rounded-lg border">
+        </div>
+        <div>
+          <label class="block text-xs text-slate-600 mb-1">ご希望日時</label>
+          <input type="date" required class="w-full p-2.5 rounded-lg border">
+        </div>
+        <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-xl">予約を確定する</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- スクリプト部 -->
+  <script>
+    let growthChart, allocationChart;
+
+    const rates = { growth: 0.07, balanced: 0.05, stable: 0.03 };
+    const allocations = {
+      growth: [55, 25, 10, 10],
+      balanced: [35, 25, 25, 15],
+      stable: [15, 15, 50, 20]
+    };
+
+    window.onload = function() {
+      initCharts();
+      updateSimulator();
+
+      ['initial', 'monthly', 'years'].forEach(id => {
+        document.getElementById(`input-${id}`).addEventListener('input', (e) => {
+          document.getElementById(`val-${id}`).innerText = e.target.value;
+          updateSimulator();
+        });
+      });
+
+      document.getElementById('input-type').addEventListener('change', updateSimulator);
+    };
+
+    function initCharts() {
+      const ctx1 = document.getElementById('chart-growth').getContext('2d');
+      growthChart = new Chart(ctx1, {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      const ctx2 = document.getElementById('chart-allocation').getContext('2d');
+      allocationChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: ['先進国株式', '新興国株式', '国債・公社債', '現金・REIT'],
+          datasets: [{ data: [], backgroundColor: ['#1b2a4a', '#f59e0b', '#94a3b8', '#cbd5e1'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function updateSimulator() {
+      const init = parseFloat(document.getElementById('input-initial').value) * 10000;
+      const monthly = parseFloat(document.getElementById('input-monthly').value) * 10000;
+      const years = parseInt(document.getElementById('input-years').value);
+      const type = document.getElementById('input-type').value;
+      const rate = rates[type];
+
+      const labels = [];
+      const dataOptimistic = [];
+      const dataStandard = [];
+      const dataPrincipal = [];
+
+      let currentStandard = init;
+      let currentOpt = init;
+      let currentPrincipal = init;
+
+      labels.push('0年');
+      dataStandard.push(Math.round(currentStandard / 10000));
+      dataOptimistic.push(Math.round(currentOpt / 10000));
+      dataPrincipal.push(Math.round(currentPrincipal / 10000));
+
+      for (let y = 1; y <= years; y++) {
+        for (let m = 0; m < 12; m++) {
+          currentStandard = (currentStandard + monthly) * (1 + rate / 12);
+          currentOpt = (currentOpt + monthly) * (1 + (rate + 0.02) / 12);
+          currentPrincipal += monthly;
+        }
+        labels.push(`${y}年`);
+        dataStandard.push(Math.round(currentStandard / 10000));
+        dataOptimistic.push(Math.round(currentOpt / 10000));
+        dataPrincipal.push(Math.round(currentPrincipal / 10000));
+      }
+
+      document.getElementById('res-total').innerText = Math.round(currentStandard / 10000).toLocaleString();
+      document.getElementById('res-principal').innerText = Math.round(currentPrincipal / 10000).toLocaleString();
+
+      growthChart.data = {
+        labels: labels,
+        datasets: [
+          { label: '楽観ケース (+2%)', data: dataOptimistic, borderColor: '#fbbf24', borderWidth: 2, fill: false },
+          { label: '標準ケース', data: dataStandard, borderColor: '#1b2a4a', borderWidth: 3, fill: false },
+          { label: '元本累計', data: dataPrincipal, borderColor: '#94a3b8', borderDash: [5, 5], fill: false }
+        ]
+      };
+      growthChart.update();
+
+      allocationChart.data.datasets[0].data = allocations[type];
+      allocationChart.update();
+    }
+
+    function calculateQuizResult() {
+      const purpose = document.getElementById('q-purpose').value;
+      const risk = document.getElementById('q-risk').value;
+      let type = 'balanced';
+
+      if (purpose === 'growth' || risk === 'buy') type = 'growth';
+      if (purpose === 'stable' || risk === 'sell') type = 'stable';
+
+      const names = { growth: '積極成長型', balanced: 'バランス型', stable: '安定運用型' };
+      const descs = {
+        growth: '高い成長を目指し、株式比率を高めたアグレッシブな運用スタイルです。',
+        balanced: 'リスクとリターンのバランスを意識した標準的な運用スタイルです。',
+        stable: '資産の保全を第一に考え、債券を中心にリスクを抑えたスタイルです。'
+      };
+
+      document.getElementById('result-type-name').innerText = names[type];
+      document.getElementById('result-description').innerText = descs[type];
+      document.getElementById('quiz-result').classList.remove('hidden');
+      document.getElementById('quiz-result').dataset.type = type;
+    }
+
+    function applyResultToSimulator() {
+      const type = document.getElementById('quiz-result').dataset.type;
+      if (type) {
+        document.getElementById('input-type').value = type;
+        updateSimulator();
+        document.getElementById('simulator').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function openBookingModal(advisorName = '指定なし') {
+      document.getElementById('modal-advisor').value = advisorName;
+      document.getElementById('booking-modal').classList.remove('hidden');
+    }
+
+    function closeBookingModal() {
+      document.getElementById('booking-modal').classList.add('hidden');
+    }
+
+    function submitBooking() {
+      alert('ご予約を承りました。担当アドバイザーよりご連絡差し上げます。');
+      closeBookingModal();
+    }
+  </script>
+<script type="module" src="https://us01ccistatic.zoom.us/us01cci/web-sdk/chat-client.js" data-chat-entry-id="OpXIMeSjRcOrhJFjOm2KOg" data-env="us01" data-apikey="PK4oUt2VQmGTYEFAfKJ21A"></script>
+
+
+</body>
+</html>
